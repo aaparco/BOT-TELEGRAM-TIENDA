@@ -42,7 +42,7 @@ catalogo = {
             "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/compose.webp",
             "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/Garfieldpersonaje.webp"
         ],
-        "zip": "https://drive.google.com/uc?export=download&id=1mV1NUcMvtzQv05acXcEk4J2ezTqeSibN"
+        "zip": "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/3cdc3ca58382550d18c668b05c6beb6ce1ddafeb/assets/assets/assets/zips/garfiel.zip"
     }
 }
 
