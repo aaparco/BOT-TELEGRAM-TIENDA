@@ -28,19 +28,19 @@ except:
 catalogo = {
     "Hello Kitty": {
         "imagenes": [
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ba001a52e4460d105e2d9d855ef6efc77d730088/assets/assets/assets/imagenes/87c31115abaa9776f5173a90bd801e64.jpg",
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ce1004adf1d68a3ea643bc61fc6e94d54f2dabc4/assets/assets/assets/imagenes/Hello_kitty_character_portrait.png",
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/Kitianime.webp"
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/ba001a52e4460d105e2d9d855ef6efc77d730088/assets/assets/assets/imagenes/87c31115abaa9776f5173a90bd801e64.jpg",
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/ce1004adf1d68a3ea643bc61fc6e94d54f2dabc4/assets/assets/assets/imagenes/Hello_kitty_character_portrait.png",
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/Kitianime.webp"
         ],
-        "zip": "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/zips/prueba.zip"
+        "zip": "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/zips/prueba.zip"
     },
     "Garfield": {
         "imagenes": [
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/GarfieldNoBackground.webp",
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/compose.webp",
-            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/Garfieldpersonaje.webp"
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/GarfieldNoBackground.webp",
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/compose.webp",
+            "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/656cd066b38a46d579a1813c07860bb85a14c798/assets/assets/assets/imagenes/Garfieldpersonaje.webp"
         ],
-        "zip": "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/3cdc3ca58382550d18c668b05c6beb6ce1ddafeb/assets/assets/assets/zips/garfiel.zip"
+        "zip": "https://raw.githubusercontent.com/aaparco/BOT-TELEGRAM-TIENDA/3cdc3ca58382550d18c668b05c6beb6ce1ddafeb/assets/assets/assets/zips/garfiel.zip"
     }
 }
 
