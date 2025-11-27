@@ -29,7 +29,7 @@ catalogo = {
     "Hello Kitty": {
         "imagenes": [
             "https://drive.google.com/uc?export=download&id=10RzzCrYDz8A1hX2rXMSu9QTrh_EggBkj",
-             "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ce1004adf1d68a3ea643bc61fc6e94d54f2dabc4/assets/assets/assets/imagenes/Hello_kitty_character_portrait.png",
+            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ce1004adf1d68a3ea643bc61fc6e94d54f2dabc4/assets/assets/assets/imagenes/Hello_kitty_character_portrait.png",
             "https://drive.google.com/uc?export=download&id=1fRtNBcFiqYshEzxWvaH7yjCPrdIk-bvt"
         ],
         "zip": "https://drive.google.com/uc?export=download&id=1WQliN6Kp9jZy5wYfXMZj7ojzh1bJ4p9C"
@@ -53,24 +53,14 @@ def guardar_db():
         json.dump(pagos_aprobados, f, indent=4)
 
 # ======================================================
-# MENÚ PRINCIPAL (sin usar /start)
-# ======================================================
-async def menu_principal(chat_id, bot):
-    keyboard = [[InlineKeyboardButton(cat, callback_data=f"cat_{cat}")]
-                for cat in catalogo]
-    keyboard.append([InlineKeyboardButton("🏠 Menú Principal", callback_data="menu")])
-
-    await bot.send_message(
-        chat_id=chat_id,
-        text="✨ Menú Principal ✨\nSelecciona una categoría:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
-
-# ======================================================
 # START
 # ======================================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await menu_principal(update.message.chat_id, context.bot)
+    keyboard = [[InlineKeyboardButton(cat, callback_data=f"cat_{cat}")] for cat in catalogo]
+    await update.message.reply_text(
+        "✨ Selecciona una categoría ✨",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
 # ======================================================
 # BOTONES
@@ -78,16 +68,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
-    user = query.from_user
-    user_id = user.id
+    user_id = query.from_user.id
     await query.answer()
-
-    # -------------------------
-    # MENÚ PRINCIPAL
-    # -------------------------
-    if data == "menu":
-        await menu_principal(query.message.chat_id, context.bot)
-        return
 
     # -------------------------
     # MOSTRAR CATEGORÍA
@@ -101,7 +83,7 @@ async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_photo(chat_id=user_id, photo=img_url)
 
         # Si ya compró antes
-        if str(user_id) in pagos_aprobados and categoria in pagos_aprobados[str(user_id)]:
+        if str(user_id) in pagos_aprobados and any(p["categoria"] == categoria for p in pagos_aprobados[str(user_id)]):
             await query.message.reply_text(
                 f"✔ Ya compraste *{categoria}*. Enviando ZIP...",
                 parse_mode="Markdown"
@@ -118,8 +100,7 @@ async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Botón comprar
         botones_compra = [
-            [InlineKeyboardButton("💎 Comprar Premium ($3)", callback_data=f"comprar_{categoria}")],
-            [InlineKeyboardButton("🏠 Menú Principal", callback_data="menu")]
+            [InlineKeyboardButton("💎 Comprar Premium ($3)", callback_data=f"comprar_{categoria}")]
         ]
         await query.message.reply_text(
             f"¿Deseas comprar el pack de *{categoria}*?",
@@ -235,12 +216,10 @@ async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"Revisar el comprobante:"
     )
 
-    botones_admin = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{uid}_{categoria}"),
-            InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{uid}_{categoria}")
-        ]
-    ])
+    botones_admin = InlineKeyboardMarkup([[
+        InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{uid}_{categoria}"),
+        InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{uid}_{categoria}")
+    ]])
 
     # Enviar al canal administrador
     await context.bot.send_photo(
