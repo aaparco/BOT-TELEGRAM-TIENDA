@@ -3,25 +3,23 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 import json
 import requests
 from io import BytesIO
+from datetime import datetime
 
 # ======================================================
 # CONFIG BOT
 # ======================================================
 TOKEN = "8551740905:AAERDsT7VI3rQsDoElV2d3fE53yv5CKNADo"
-CANAL_ADMIN = -1003287208136  # tu canal
+CANAL_ADMIN = -1003287208136  # Canal admin donde recibes comprobantes y notificaciones
 
 DB_FILE = "pagos_aprobados.json"
 
 # ======================================================
-# Cargar la BD local
+# Cargar Base de Datos
 # ======================================================
-if json := None:
-    try:
-        with open(DB_FILE, "r") as f:
-            pagos_aprobados = json.load(f)
-    except:
-        pagos_aprobados = {}
-else:
+try:
+    with open(DB_FILE, "r") as f:
+        pagos_aprobados = json.load(f)
+except:
     pagos_aprobados = {}
 
 # ======================================================
@@ -54,14 +52,24 @@ def guardar_db():
         json.dump(pagos_aprobados, f, indent=4)
 
 # ======================================================
+# MENÚ PRINCIPAL (sin usar /start)
+# ======================================================
+async def menu_principal(chat_id, bot):
+    keyboard = [[InlineKeyboardButton(cat, callback_data=f"cat_{cat}")]
+                for cat in catalogo]
+    keyboard.append([InlineKeyboardButton("🏠 Menú Principal", callback_data="menu")])
+
+    await bot.send_message(
+        chat_id=chat_id,
+        text="✨ Menú Principal ✨\nSelecciona una categoría:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+# ======================================================
 # START
 # ======================================================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton(cat, callback_data=f"cat_{cat}")] for cat in catalogo]
-    await update.message.reply_text(
-        "✨ Bienvenido a la tienda ✨\n\nSelecciona una categoría:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
-    )
+    await menu_principal(update.message.chat_id, context.bot)
 
 # ======================================================
 # BOTONES
@@ -69,8 +77,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
-    user_id = query.from_user.id
+    user = query.from_user
+    user_id = user.id
     await query.answer()
+
+    # -------------------------
+    # MENÚ PRINCIPAL
+    # -------------------------
+    if data == "menu":
+        await menu_principal(query.message.chat_id, context.bot)
+        return
 
     # -------------------------
     # MOSTRAR CATEGORÍA
@@ -79,20 +95,16 @@ async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
         categoria = data.replace("cat_", "")
         contenido = catalogo[categoria]
 
-        # Mostrar fotos desde URL
+        # Mostrar fotos
         for img_url in contenido["imagenes"]:
-            try:
-                await query.message.reply_photo(photo=img_url)
-            except:
-                await query.message.reply_text(f"❌ No se pudo cargar la imagen: {img_url}")
+            await context.bot.send_photo(chat_id=user_id, photo=img_url)
 
         # Si ya compró antes
         if str(user_id) in pagos_aprobados and categoria in pagos_aprobados[str(user_id)]:
             await query.message.reply_text(
-                f"✔ Ya tienes comprado *{categoria}*. Enviando ZIP...",
+                f"✔ Ya compraste *{categoria}*. Enviando ZIP...",
                 parse_mode="Markdown"
             )
-            # Descargar y enviar ZIP
             r = requests.get(contenido["zip"])
             zip_file = BytesIO(r.content)
             await context.bot.send_document(
@@ -104,9 +116,12 @@ async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         # Botón comprar
-        botones_compra = [[InlineKeyboardButton("💎 Comprar Premium ($3)", callback_data=f"comprar_{categoria}")]]
+        botones_compra = [
+            [InlineKeyboardButton("💎 Comprar Premium ($3)", callback_data=f"comprar_{categoria}")],
+            [InlineKeyboardButton("🏠 Menú Principal", callback_data="menu")]
+        ]
         await query.message.reply_text(
-            f"¿Deseas obtener el pack premium de *{categoria}*?",
+            f"¿Deseas comprar el pack de *{categoria}*?",
             parse_mode="Markdown",
             reply_markup=InlineKeyboardMarkup(botones_compra)
         )
@@ -117,34 +132,79 @@ async def botones(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("comprar_"):
         categoria = data.replace("comprar_", "")
         solicitudes[user_id] = categoria
-        await query.message.reply_text("📸 Envíame la *foto del comprobante*.", parse_mode="Markdown")
+
+        await query.message.reply_text(
+            "📸 Envíame la *foto del comprobante del pago*.",
+            parse_mode="Markdown"
+        )
 
     # -------------------------
-    # APROBAR (ADMIN)
+    # APROBAR PAGO (ADMIN)
     # -------------------------
     elif data.startswith("aprobar_"):
         _, uid, categoria = data.split("_")
         uid = int(uid)
-        zip_url = catalogo[categoria]["zip"]
+
         # Descargar ZIP
+        zip_url = catalogo[categoria]["zip"]
         r = requests.get(zip_url)
         zip_file = BytesIO(r.content)
+
+        # Enviar archivo al cliente
         await context.bot.send_document(
             chat_id=uid,
             document=zip_file,
             filename=f"{categoria}.zip",
-            caption=f"🎉 *Pago aprobado*\nTu pack premium de {categoria}.",
+            caption="🎉 *Pago aprobado*\nGracias por tu compra.",
             parse_mode="Markdown"
         )
 
-        # Guardar BD
+        # Registrar compra con fecha
+        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         if str(uid) not in pagos_aprobados:
             pagos_aprobados[str(uid)] = []
-        pagos_aprobados[str(uid)].append(categoria)
+
+        pagos_aprobados[str(uid)].append({
+            "categoria": categoria,
+            "fecha": fecha
+        })
+
         guardar_db()
 
+        # Notificar administrador
+        await context.bot.send_message(
+            chat_id=CANAL_ADMIN,
+            text=f"✔ Pago aprobado\nUsuario: {uid}\nCategoría: {categoria}\nFecha: {fecha}"
+        )
+
+        # Editar mensaje de comprobante
         await query.edit_message_caption(
-            caption=f"✔ Pago aprobado — ZIP enviado a {uid}\nCategoría: {categoria}"
+            caption=f"✔ Pago aprobado — ZIP enviado\nCategoría: {categoria}"
+        )
+
+    # -------------------------
+    # RECHAZAR PAGO
+    # -------------------------
+    elif data.startswith("rechazar_"):
+        _, uid, categoria = data.split("_")
+        uid = int(uid)
+
+        # Avisar al cliente
+        await context.bot.send_message(
+            chat_id=uid,
+            text=f"❌ Tu comprobante para *{categoria}* fue rechazado.",
+            parse_mode="Markdown"
+        )
+
+        # Notificar administrador
+        await context.bot.send_message(
+            chat_id=CANAL_ADMIN,
+            text=f"❌ Pago rechazado\nUsuario: {uid}\nCategoría: {categoria}"
+        )
+
+        await query.edit_message_caption(
+            caption=f"❌ Pago rechazado para usuario {uid}"
         )
 
 # ======================================================
@@ -161,21 +221,27 @@ async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE
     categoria = solicitudes[uid]
 
     if not update.message.photo:
-        await update.message.reply_text("❌ Envía una *foto* del comprobante.", parse_mode="Markdown")
+        await update.message.reply_text("❌ Debes enviar una *foto* del comprobante.", parse_mode="Markdown")
         return
 
     file_id = update.message.photo[-1].file_id
+
     caption = (
         f"💰 *Nuevo Comprobante de Pago*\n\n"
-        f"👤 Usuario: @{user.username or uid}\n"
+        f"👤 Usuario: @{user.username or 'sin username'}\n"
         f"🆔 ID: {uid}\n"
         f"📂 Categoría: {categoria}\n"
-        f"Revisar y aprobar:"
+        f"Revisar el comprobante:"
     )
 
-    botones_admin = InlineKeyboardMarkup([[InlineKeyboardButton("✅ Aprobar Pago", callback_data=f"aprobar_{uid}_{categoria}")]])
+    botones_admin = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{uid}_{categoria}"),
+            InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{uid}_{categoria}")
+        ]
+    ])
 
-    # Enviar al canal admin
+    # Enviar al canal administrador
     await context.bot.send_photo(
         chat_id=CANAL_ADMIN,
         photo=file_id,
@@ -199,4 +265,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
