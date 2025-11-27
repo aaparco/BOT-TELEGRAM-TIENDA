@@ -28,7 +28,7 @@ except:
 catalogo = {
     "Hello Kitty": {
         "imagenes": [
-            "https://drive.google.com/uc?export=download&id=10RzzCrYDz8A1hX2rXMSu9QTrh_EggBkj",
+            "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ba001a52e4460d105e2d9d855ef6efc77d730088/assets/assets/assets/imagenes/87c31115abaa9776f5173a90bd801e64.jpg",
             "https://github.com/aaparco/BOT-TELEGRAM-TIENDA/blob/ce1004adf1d68a3ea643bc61fc6e94d54f2dabc4/assets/assets/assets/imagenes/Hello_kitty_character_portrait.png",
             "https://drive.google.com/uc?export=download&id=1fRtNBcFiqYshEzxWvaH7yjCPrdIk-bvt"
         ],
